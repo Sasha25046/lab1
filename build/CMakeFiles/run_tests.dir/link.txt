@@ -1,0 +1,1 @@
+/usr/bin/c++ -static-libstdc++ -static-libgcc CMakeFiles/run_tests.dir/tests.cpp.o -o run_tests  -Wl,-rpath,/opt/conda/lib /opt/conda/lib/libgtest_main.so.1.11.0 -lpthread /opt/conda/lib/libgtest.so.1.11.0 
