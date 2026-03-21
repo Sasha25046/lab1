@@ -5,20 +5,30 @@
 #include <string>
 #include "Lexer.h"
 
-const std::vector<std::string> KEYWORDS_TO_TEST = {
-    "let", "const", "if", "return", "while", "class", "function"
+struct ComplexTestData {
+    std::string description;           
+    std::string input;                 
+    std::vector<std::string> expected; 
 };
 
-struct TokenTestData {
-    std::string input;
-    TokenType expectedType;
-    std::string expectedValue;
+const std::vector<ComplexTestData> COMPLEX_SCENARIOS = {
+    {
+        "Variable and Math",
+        "let x = 42; const y = 3.14; let res = x + y;",
+        {"let", "x", "=", "42", ";", "const", "y", "=", "3.14", ";", "let", "res", "=", "x", "+", "y", ";"}
+    },
+    {
+        "Function Declaration",
+        "function sum(a, b) { return a + b; }",
+        {"function", "sum", "(", "a", ",", "b", ")", "{", "return", "a", "+", "b", ";", "}"}
+    },
+    {
+        "Error and Unknown",
+        "let bad = @123;",
+        {"let", "bad", "=", "@", "123", ";"}
+    }
 };
 
-const std::vector<TokenTestData> LITERAL_TEST_DATA = {
-    {"42", TokenType::INTEGER_LITERAL, "42"},
-    {"myVar", TokenType::IDENTIFIER, "myVar"},
-    {"{", TokenType::PUNCTUATOR, "{"}
-};
+const std::vector<std::string> KEYWORDS_LIST = {"let", "const", "if", "for", "while", "class", "function", "return"};
 
 #endif

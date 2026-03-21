@@ -43,7 +43,6 @@ public:
             char c = input[position];
             if (isspace(c)) { position++; continue; }
 
-            // Обробка рядків з виключенням (Вимога лаби)
             if (c == '"' || c == '\'' || c == '`') {
                 size_t start = position++;
                 while (position < input.size() && input[position] != c) position++;
@@ -64,11 +63,32 @@ public:
                 else tokens.emplace_back(TokenType::IDENTIFIER, word);
                 continue;
             }
-
-            if (isDigit(c)) {
+            if (isdigit(c)) {
                 size_t start = position;
-                while (position < input.size() && isdigit(input[position])) position++;
-                tokens.emplace_back(TokenType::INTEGER_LITERAL, input.substr(start, position - start));
+                bool hasDot = false;
+                while (position < input.size()) {
+                    char current = input[position];
+                    if (isdigit(current)) {
+                        position++;
+                    } 
+                    else if (current == '.' && !hasDot) {
+                        if (position + 1 < input.size() && isdigit(input[position + 1])) {
+                            hasDot = true;
+                            position++;
+                        } else {
+                            break;
+                        }
+                    } 
+                    else {
+                        break;
+                    }
+                }
+                std::string value = input.substr(start, position - start);
+                if (hasDot) {
+                    tokens.emplace_back(TokenType::FLOAT_LITERAL, value);
+                } else {
+                    tokens.emplace_back(TokenType::INTEGER_LITERAL, value);
+                }
                 continue;
             }
 

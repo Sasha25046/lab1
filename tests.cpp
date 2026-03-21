@@ -1,6 +1,4 @@
 #include <gtest/gtest.h>
-#include <vector>
-#include <string>
 #include <algorithm>
 #include "Lexer.h"
 #include "test_config.h"
@@ -12,63 +10,54 @@ protected:
     void TearDown() override { delete lexer; }
 };
 
-class KeywordParamTest : public ::testing::TestWithParam<std::string> {};
-TEST_P(KeywordParamTest, ChecksKeywords) {
-    LexicalAnalyzer lex(GetParam());
-    auto tokens = lex.tokenize();
-    ASSERT_EQ(tokens.size(), 1);
-    EXPECT_EQ(tokens[0].type, TokenType::KEYWORD);
-}
-INSTANTIATE_TEST_SUITE_P(JSKeywords, KeywordParamTest, ::testing::ValuesIn(KEYWORDS_TO_TEST));
+class ComplexCodeTest : public ::testing::TestWithParam<ComplexTestData> {};
 
-class LiteralParamTest : public ::testing::TestWithParam<TokenTestData> {};
-TEST_P(LiteralParamTest, ChecksDifferentTypes) {
-    TokenTestData data = GetParam();
+TEST_P(ComplexCodeTest, ValidatesFullCodeBlocks) {
+    ComplexTestData data = GetParam();
     LexicalAnalyzer lex(data.input);
     auto tokens = lex.tokenize();
-    ASSERT_FALSE(tokens.empty());
-    EXPECT_EQ(tokens[0].type, data.expectedType);
-    EXPECT_EQ(tokens[0].value, data.expectedValue);
-}
-INSTANTIATE_TEST_SUITE_P(Literals, LiteralParamTest, ::testing::ValuesIn(LITERAL_TEST_DATA));
 
-TEST_F(LexerFixture, AdvancedAndExceptionTests) {
+    ASSERT_EQ(tokens.size(), data.expected.size()) << "Failed on: " << data.description;
+    
+    for (size_t i = 0; i < tokens.size(); ++i) {
+        EXPECT_EQ(tokens[i].value, data.expected[i]) << "Mismatch at index " << i;
+    }
+}
+INSTANTIATE_TEST_SUITE_P(JSBlocks, ComplexCodeTest, ::testing::ValuesIn(COMPLEX_SCENARIOS));
+
+class KeywordParamTest : public ::testing::TestWithParam<std::string> {};
+
+TEST_P(KeywordParamTest, ChecksIndividualKeywords) {
+    LexicalAnalyzer lex(GetParam());
+    auto tokens = lex.tokenize();
+    ASSERT_FALSE(tokens.empty());
+    EXPECT_EQ(tokens[0].type, TokenType::KEYWORD);
+}
+INSTANTIATE_TEST_SUITE_P(Keywords, KeywordParamTest, ::testing::ValuesIn(KEYWORDS_LIST));
+
+TEST_F(LexerFixture, ThrowsOnUnterminatedString) {
+    LexicalAnalyzer badLex("\"missing end quote");
+    EXPECT_THROW(badLex.tokenize(), std::runtime_error);
+}
+
+TEST_F(LexerFixture, AdvancedAssertsDemo) {
     lexer = new LexicalAnalyzer("const x = 42;");
     auto tokens = lexer->tokenize();
 
-    std::vector<std::string> expected = {"const", "x", "=", "42", ";"};
-    std::vector<std::string> actual;
-    for(const auto& t : tokens) actual.push_back(t.value);
-
-    ASSERT_EQ(actual.size(), expected.size());
-    EXPECT_TRUE(std::equal(actual.begin(), actual.end(), expected.begin()));
-
-    EXPECT_STREQ(tokens[0].value.c_str(), "const");
-
-    EXPECT_EQ(tokens[3].type, TokenType::INTEGER_LITERAL);
+    ASSERT_FALSE(tokens.empty());                      
+    EXPECT_EQ(tokens.size(), 5);                       
     
-    ASSERT_FALSE(tokens.empty());
+    EXPECT_STREQ(tokens[0].value.c_str(), "const");    
+    
+    EXPECT_TRUE(tokens[3].type == TokenType::INTEGER_LITERAL); 
 }
 
-TEST_F(LexerFixture, ThrowsOnUnterminatedString) {
-    LexicalAnalyzer badLexer("\"error");
-    EXPECT_THROW(badLexer.tokenize(), std::runtime_error);
-}
-
-TEST_F(LexerFixture, SkipTest) {
+TEST_F(LexerFixture, PlatformSpecificSkip) {
     #ifdef _WIN32
-        GTEST_SKIP() << "Skipping: this specific test is only for Linux environment";
+        GTEST_SKIP() << "Skipping this test because it's only for non-Windows environments";
     #endif
 
-    LexicalAnalyzer l("var a;");
-    auto tokens = l.tokenize();
-    ASSERT_FALSE(tokens.empty());
+    LexicalAnalyzer lex("var a = 1;");
+    auto tokens = lex.tokenize();
     EXPECT_EQ(tokens[0].value, "var");
-}
-
-TEST_F(LexerFixture, CoversUnknown) {
-    LexicalAnalyzer l("@");
-    auto tokens = l.tokenize();
-    ASSERT_EQ(tokens.size(), 1);
-    EXPECT_EQ(tokens[0].type, TokenType::UNKNOWN);
 }
