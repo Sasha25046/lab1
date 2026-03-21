@@ -215,6 +215,9 @@ CMAKE_TAPI:FILEPATH=CMAKE_TAPI-NOTFOUND
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
+//Enable coverage reporting
+COVERAGE:BOOL=ON
+
 //The directory containing a CMake configuration file for GTest.
 GTest_DIR:PATH=/opt/conda/lib/cmake/GTest
 

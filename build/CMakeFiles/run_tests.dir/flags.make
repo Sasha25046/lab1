@@ -6,5 +6,5 @@ CXX_DEFINES = -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 CXX_INCLUDES = -isystem /opt/conda/include
 
-CXX_FLAGS = -std=gnu++17
+CXX_FLAGS = -std=gnu++17 --coverage -O0 -g
 
